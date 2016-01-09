@@ -5,11 +5,11 @@
                 string errorPractices = "";
                 if (rbtnExclude.Checked == false && rbtnInclude.Checked == false)
                 {
-                    MessageBox.Show("Select Include Or Exclude.", "MTBC-Invoice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("Select Include Or Exclude.", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
 
-                MessageBox.Show("Excel Sheet must have One columns having name 'Practices'.", "MTBC-Invoice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Excel Sheet must have One columns having name 'Practices'.", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 OpenFileDialog fdlg = new OpenFileDialog();
                 fdlg.Title = "Select Excel File";
@@ -66,7 +66,7 @@
                                     errorPractices += dr["Practices"] + "\n";
                                 }
                             }
-                            MessageBox.Show(selected + " Practices Selected out of " + total, "MTBC-Invoice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            MessageBox.Show(selected + " Practices Selected out of " + total, "", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
                         else if (rbtnExclude.Checked == true)
                         {
@@ -88,16 +88,16 @@
                                     errorPractices += dr["Practices"] + "\n";
                                 }
                             }
-                            MessageBox.Show(selected + " Practices Excluded out of " + total, "MTBC-Invoice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            MessageBox.Show(selected + " Practices Excluded out of " + total, "", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
                         if (errorPractices.Length > 1)
-                            MessageBox.Show(selected + " Practices Not in List \n" + errorPractices, "MTBC-Invoice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            MessageBox.Show(selected + " Practices Not in List \n" + errorPractices, "", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "MTBC-Invoice", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, "", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
