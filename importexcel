@@ -1,0 +1,151 @@
+   private void btnImportExcel_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string errorPractices = "";
+                if (rbtnExclude.Checked == false && rbtnInclude.Checked == false)
+                {
+                    MessageBox.Show("Select Include Or Exclude.", "MTBC-Invoice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                MessageBox.Show("Excel Sheet must have One columns having name 'Practices'.", "MTBC-Invoice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                OpenFileDialog fdlg = new OpenFileDialog();
+                fdlg.Title = "Select Excel File";
+
+                fdlg.Filter = "Files (*.xls)|*.xls|(*.xlsm)|*.xlsm|(*.xlsx)|*.xlsx";
+                fdlg.DefaultExt = ".xlsx";
+
+                fdlg.FilterIndex = 3;
+                fdlg.RestoreDirectory = true;
+                if (fdlg.ShowDialog() == DialogResult.OK)
+                {
+                    System.IO.FileInfo fInfo = new System.IO.FileInfo(fdlg.FileName);
+                    if (fInfo.Extension != ".xls" && fInfo.Extension != ".xlsm" && fInfo.Extension != ".xlsx")
+                    {
+                        MessageBox.Show("Incorrect File is Selected!");
+                        return;
+                    }
+                    String strConn = @"provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + fdlg.FileName + ";Extended Properties=Excel 12.0;";
+                    OleDbConnection conn = null;
+                    OleDbCommand cmd = null;
+                    OleDbDataAdapter da = null;
+                    conn = new OleDbConnection(strConn);
+                    conn.Open();
+                    String[] excelSheets = GetExcelSheetNames(fdlg.FileName);
+
+                    cmd = new OleDbCommand("SELECT * FROM [" + excelSheets[0] + "]", conn);
+                    cmd.CommandType = CommandType.Text;
+                    da = new OleDbDataAdapter(cmd);
+                    DataTable excelData = new DataTable();
+                    da.Fill(excelData);
+                    if (excelData.Rows.Count > 0)
+                    {
+                        if (excelData.Columns[0].Caption != "Practices")
+                            MessageBox.Show("Invalid File Formate");
+                        DataRow[] row;
+                        int total = 0, selected = 0;
+                        if (rbtnInclude.Checked == true)
+                        {
+                            foreach (DataRow dr in BusGeneral.ds.Tables["AllCustomers"].Rows)
+                            {
+                                dr["Checked_Unchecked"] = false;
+                                total++;
+                            }
+                            foreach (DataRow dr in excelData.Rows)
+                            {
+                                row = BusGeneral.ds.Tables["AllCustomers"].Select("CustomFieldPracticeCode = '" + dr["Practices"] + "'");
+                                if (row.Length > 0)
+                                {
+                                    row[0]["Checked_Unchecked"] = true;
+                                    selected++;
+                                }
+                                else
+                                {
+                                    errorPractices += dr["Practices"] + "\n";
+                                }
+                            }
+                            MessageBox.Show(selected + " Practices Selected out of " + total, "MTBC-Invoice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        else if (rbtnExclude.Checked == true)
+                        {
+                            foreach (DataRow dr in BusGeneral.ds.Tables["AllCustomers"].Rows)
+                            {
+                                dr["Checked_Unchecked"] = true;
+                                total++;
+                            }
+                            foreach (DataRow dr in excelData.Rows)
+                            {
+                                row = BusGeneral.ds.Tables["AllCustomers"].Select("CustomFieldPracticeCode = '" + dr["Practices"] + "'");
+                                if (row.Length > 0)
+                                {
+                                    row[0]["Checked_Unchecked"] = false;
+                                    selected++;
+                                }
+                                else
+                                {
+                                    errorPractices += dr["Practices"] + "\n";
+                                }
+                            }
+                            MessageBox.Show(selected + " Practices Excluded out of " + total, "MTBC-Invoice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        if (errorPractices.Length > 1)
+                            MessageBox.Show(selected + " Practices Not in List \n" + errorPractices, "MTBC-Invoice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "MTBC-Invoice", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        public String[] GetExcelSheetNames(string excelFile)
+        {
+            OleDbConnection objConn = null;
+            System.Data.DataTable dt = null;
+            try
+            {
+                //String connString = "Provider=Microsoft.Jet.OLEDB.4.0;" +"Data Source=" + excelFile + ";Extended Properties=Excel 8.0;";
+                String connString = @"provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + excelFile + ";Extended Properties=Excel 12.0;";
+                objConn = new OleDbConnection(connString);
+                objConn.Open();
+                dt = objConn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, null);
+
+                if (dt == null)
+                {
+                    return null;
+                }
+                String[] excelSheets = new String[dt.Rows.Count];
+                int i = 0;
+                foreach (DataRow row in dt.Rows)
+                {
+                    excelSheets[i] = row["TABLE_NAME"].ToString();
+                    i++;
+                }
+                // Loop through all of the sheets if you want too... 
+                for (int j = 0; j < excelSheets.Length; j++)
+                {
+                    // Query each excel sheet. 
+                }
+                return excelSheets;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            finally
+            {
+                // Clean up. 
+                if (objConn != null)
+                {
+                    objConn.Close();
+                    objConn.Dispose();
+                }
+                if (dt != null)
+                {
+                    dt.Dispose();
+                }
+            }
+        }
